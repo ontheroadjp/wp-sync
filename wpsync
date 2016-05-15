@@ -58,7 +58,7 @@ function _mysqlstore(){
 }
 
 function _mysqldump() {
-    if [ -f .env ]; then
+    if [ -f $(cd $(dirname $0);pwd)/.env ]; then
         . $(cd $(dirname $0);pwd)/.env
     else
         echo "error: .env file does not exist."
