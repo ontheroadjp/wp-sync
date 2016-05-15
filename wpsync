@@ -1,0 +1,160 @@
+#!/bin/sh
+
+# ----------------------------------------
+# Global variables
+# ----------------------------------------
+
+project_name="wpsync"
+project_name=$0
+version="0.1"
+
+# ----------------------------------------
+# Private Functions
+# ----------------------------------------
+
+function __usage() {
+  cat <<-EOF
+Usage: 
+    ${project_name} <command>
+
+option:
+    -v              Show the version of ${project_name}
+    -h              Show this message
+
+command:
+    mysqldump       Obtaining MySQL dump data
+
+EOF
+}
+
+function __is_executable() {
+    local command="$1"
+    type "${command}" > /dev/null 2>&1
+}
+
+function __version() { 
+    echo ${version} 
+}
+
+function __help() { 
+    __usage 
+}
+
+# ----------------------------------------
+# Command
+# ----------------------------------------
+
+function _mysqlstore(){
+    . lib/backup.sh
+    set_wp_path ../../
+	local db_name=$(get_wp_config_value DB_NAME)
+	local db_user=$(get_wp_config_value DB_USER)
+	local db_password=$(get_wp_config_value DB_PASSWORD)
+	local db_host=$(get_wp_config_value DB_HOST)
+	echo ${db_name}
+	echo ${db_user}
+	echo ${db_password}
+	echo ${db_host}
+}
+
+function _mysqldump() {
+    if [ -f .env ]; then
+        . $(cd $(dirname $0);pwd)/.env
+    else
+        echo "error: .env file does not exist."
+        exit 1
+    fi
+    
+    # UPLOAD backup.sh
+    echo ">>> upload backup.sh..."
+    if [ ! -z ${wp_host} ]; then
+        scp lib/backup.sh ${wp_host}:${wp_root}/backup.sh || {
+            echo "error."
+            exit 1
+        }
+    else
+        scp -P ${ssh_port} lib/backup.sh ${ssh_user}@${ssh_host}:${wp_root}/backup.sh || {
+            echo "error."
+            exit 1
+        }
+    fi
+    
+    # DUMP MYSQL DATA
+    if [ ! -z ${wp_host} ]; then
+        ssh x sh ${wp_root}/backup.sh || {
+            echo "error."
+            exit 1
+        }
+    else
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${wp_root}/backup.sh || {
+            echo "error."
+            exit 1
+        }
+    fi
+    
+    # DOWNLOAD DUMP DATA
+    echo ">>> download dump data..."
+    if [ ! -z ${wp_host} ]; then
+        scp ${wp_host}:${wp_root}/.backup/db-dump.sql data/db-dump.sql || {
+            echo "error."
+            exit 1
+        }
+    else
+        scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${wp_root}/.backup/db-dump.sql data/db-dump.sql || {
+            echo "error."
+            exit 1
+        }
+    fi
+    
+    # CLEAN UP
+    echo ">>> clean up..."
+    if [ ! -z ${wp_host} ]; then
+        #ssh -t -t x <<EOF
+        ssh x <<EOF > /dev/null 2>&1
+rm -rf ${wp_root}/.backup
+rm -rf ${wp_root}/backup.sh
+exit
+EOF
+    else
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
+rm -rf ${wp_root}/.backup
+rm -rf ${wp_root}/backup.sh
+exit
+EOF
+    fi
+    
+    echo "complete!"
+}
+
+# ----------------------------------------
+# Main Routine
+# ----------------------------------------
+
+# check option(s)
+while getopts hv OPT
+do
+  case $OPT in
+    "h" ) __help;exit 0 ;;
+    "v" ) __version;exit 0 ;;
+  esac
+done
+shift $(expr $OPTIND - 1)
+
+# check argument(s)
+if [ $# -ne 1 ]; then
+    echo "error: invalid argument(s)"
+    echo "See '${project_name} -h'." 
+    exit 1
+fi
+
+# execute command
+if __is_executable _$1; then
+    _$1
+else
+    echo "error: invalid argument(s)"
+    echo "See '${project_name} -h'." 
+    exit 1
+fi
+
+exit 0
+
