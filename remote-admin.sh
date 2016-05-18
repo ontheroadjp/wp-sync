@@ -186,11 +186,15 @@ fi
 if __is_executable _$1; then
     cmd=$1; shift
 
-    __init
-    _${cmd}
-    __download_data
-    __clean_up
-    echo "complete!"
+    __init && {
+        _${cmd} && {
+            __download_data && {
+                __clean_up && {
+                    echo "complete!"
+                }
+            }
+        }
+    }
 else
     echo "error: not executable."
     echo "See '${project_name} -h'." 
