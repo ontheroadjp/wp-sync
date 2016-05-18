@@ -1,6 +1,8 @@
 #!/bin/sh
 
+version="0.1"
 project_name=$0
+
 self_path=$(cd $(dirname $0);pwd)
 dump_dir=${self_path}/.db-dump
 dump_file_name="db-dump.sql"
@@ -21,11 +23,11 @@ command:
 EOF
 }
 
-function _version() { 
+function __version() { 
     echo ${version} 
 }
 
-function _help() { 
+function __help() { 
     __usage 
 }
 
@@ -88,7 +90,7 @@ function _db_dump() {
 while getopts hv OPT
 do
   case $OPT in
-    "h" ) __helpe;exit 0 ;;
+    "h" ) __help;exit 0 ;;
     "v" ) __version;exit 0 ;;
   esac
 done
