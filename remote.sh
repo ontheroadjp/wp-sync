@@ -22,7 +22,7 @@ option:
     -h              Show this message
 
 command:
-    mysqldump       Obtaining MySQL dump data
+    dump            Obtaining MySQL dump data
 
 EOF
 }
@@ -57,7 +57,7 @@ function __help() {
 #	echo ${db_host}
 #}
 
-function _mysqldump() {
+function _dump() {
     if [ -f $(cd $(dirname $0);pwd)/.env ]; then
         . $(cd $(dirname $0);pwd)/.env
     else
@@ -65,23 +65,26 @@ function _mysqldump() {
         exit 1
     fi
 
-    if [ $1 != "" ]; then
-        download_dump_file_path=$1
+    if [ ! -z $1 ]; then
+        download_dump_file=$1
     else
-        download_dump_file_path=$(cd $(dirname $0);pwd)/data/db_dump.sql.tar.gz
+        download_dump_file=$(cd $(dirname $0);pwd)/sql/dump.sql.tar.gz
     fi
 
-    dump_file_path=${wp_root}/.db-dump/db-dump.sql
+    agent_path=${wp_root}/wp-sync
+    dump_file=${agent_path}/sql/dump.sql
     
     # UPLOAD mysql-admin-agent.sh
     echo ">>> upload mysql-admin-agent.sh..."
     if [ ! -z ${wp_host} ]; then
-        scp $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${wp_host}:${wp_root}/mysql-admin-agent.sh || {
+        ssh ${wp_host} mkdir -p ${agent_path}
+        scp $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${wp_host}:${agent_path}/mysql-admin-agent.sh || {
             echo "error."
             exit 1
         }
     else
-        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${ssh_user}@${ssh_host}:${wp_root}/mysql-admin-agent.sh || {
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} mkdir -p ${agent_path}
+        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${ssh_user}@${ssh_host}:${agent_path}/mysql-admin-agent.sh || {
             echo "error."
             exit 1
         }
@@ -89,12 +92,12 @@ function _mysqldump() {
     
     # DUMP MYSQL DATA
     if [ ! -z ${wp_host} ]; then
-        ssh x sh ${wp_root}/mysql-admin-agent.sh dump true || {
+        ssh ${wp_host} sh ${agent_path}/mysql-admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
     else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${wp_root}/mysql-admin-agent.sh dump true || {
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/mysql-admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
@@ -102,15 +105,15 @@ function _mysqldump() {
 
     # DOWNLOAD DUMP DATA
     echo ">>> download dump data..."
-    mkdir -p $(cd $(dirname $0);pwd)/data
+    mkdir -p $(cd $(dirname $0);pwd)/sql
 
     if [ ! -z ${wp_host} ]; then
-        scp ${wp_host}:${dump_file_path}.tar.gz ${download_dump_file_path} || {
+        scp ${wp_host}:${dump_file}.tar.gz ${download_dump_file} || {
             echo "error."
             exit 1
         }
     else
-        scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${dump_file_path}.tar.gz ${download_dump_file_path} || {
+        scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${dump_file}.tar.gz ${download_dump_file} || {
             echo "error."
             exit 1
         }
@@ -121,14 +124,16 @@ function _mysqldump() {
     if [ ! -z ${wp_host} ]; then
         #ssh -t -t x <<EOF
         ssh x <<EOF > /dev/null 2>&1
-rm -rf ${wp_root}/.db-dump
-rm -rf ${wp_root}/mysql-admin-agent.sh
+rm -rf ${agent_path}/mysql-admin-agent.sh
+rm -rf ${dump_file}.tar.gz
+rm -rf ${dump_file}
 exit
 EOF
     else
         ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
-rm -rf ${wp_root}/.db-dump
-rm -rf ${wp_root}/mysql-admin-agent.sh
+rm -rf ${agent_path}/mysql-admin-agent.sh
+rm -rf ${dump_file}.tar.gz
+rm -rf ${dump_file}
 exit
 EOF
     fi

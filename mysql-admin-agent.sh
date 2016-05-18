@@ -4,8 +4,8 @@ version="0.1"
 project_name=$0
 
 self_path=$(cd $(dirname $0);pwd)
-dump_dir=${self_path}/.db-dump
-dump_file_name="db-dump.sql"
+dump_dir=${self_path}/sql
+dump_file_name="dump.sql"
 
 function __usage() {
   cat <<-EOF
@@ -42,15 +42,13 @@ function __get_wp_config_value() {
 		exit 1
 	fi
 	
-	#cat $(cd $(dirname $0);pwd)/wp-config.php | grep "'$1'" > /dev/null 2>&1
-	cat ${self_path}/wp-config.php | grep "'$1'" > /dev/null 2>&1
+	cat ${self_path}/../wp-config.php | grep "'$1'" > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo "error: there is no key: $1."
 		exit 1
 	fi
 
-	#value=$(cat $(cd $(dirname $0);pwd)/wp-config.php | \
-	value=$(cat ${self_path}/wp-config.php | \
+	value=$(cat ${self_path}/../wp-config.php | \
 		grep "'$1'" | \
 		sed -e "s/^define(.*'$1',[ |]//" | \
 		sed -e "s/);.*$//" | \
