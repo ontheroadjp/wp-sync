@@ -45,7 +45,7 @@ function __help() {
 # ----------------------------------------
 
 #function _mysqlstore(){
-#    . lib/mysql-admin-agent.sh
+#    . ./mysql-admin-agent.sh
 #    set_wp_path ../../
 #	local db_name=$(get_wp_config_value DB_NAME)
 #	local db_user=$(get_wp_config_value DB_USER)
@@ -76,12 +76,12 @@ function _mysqldump() {
     # UPLOAD mysql-admin-agent.sh
     echo ">>> upload mysql-admin-agent.sh..."
     if [ ! -z ${wp_host} ]; then
-        scp $(cd $(dirname $0);pwd)/lib/mysql-admin-agent.sh ${wp_host}:${wp_root}/mysql-admin-agent.sh || {
+        scp $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${wp_host}:${wp_root}/mysql-admin-agent.sh || {
             echo "error."
             exit 1
         }
     else
-        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/lib/mysql-admin-agent.sh ${ssh_user}@${ssh_host}:${wp_root}/mysql-admin-agent.sh || {
+        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${ssh_user}@${ssh_host}:${wp_root}/mysql-admin-agent.sh || {
             echo "error."
             exit 1
         }
