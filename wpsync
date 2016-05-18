@@ -89,12 +89,12 @@ function _mysqldump() {
     
     # DUMP MYSQL DATA
     if [ ! -z ${wp_host} ]; then
-        ssh x sh ${wp_root}/mysql-admin-agent.sh db_dump true || {
+        ssh x sh ${wp_root}/mysql-admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
     else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${wp_root}/mysql-admin-agent.sh db_dump true || {
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${wp_root}/mysql-admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
@@ -105,13 +105,11 @@ function _mysqldump() {
     mkdir -p $(cd $(dirname $0);pwd)/data
 
     if [ ! -z ${wp_host} ]; then
-        #scp ${wp_host}:${wp_root}/.db-dump//db-dump.sql $(cd $(dirname $0);pwd)/data/db_dump.sql || {
         scp ${wp_host}:${dump_file_path}.tar.gz ${download_dump_file_path} || {
             echo "error."
             exit 1
         }
     else
-        #scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${wp_root}/.db-dump/db-dump.sql $(cd $(dirname $0);pwd)/data/db-dump.sql || {
         scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${dump_file_path}.tar.gz ${download_dump_file_path} || {
             echo "error."
             exit 1

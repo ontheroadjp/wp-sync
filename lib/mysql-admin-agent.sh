@@ -11,7 +11,7 @@ function __usage() {
   cat <<-EOF
 Usage: 
     ${project_name} <command>
-    ${project_name} [-e|-v|-h]
+    ${project_name} [-v|-h]
 
 option:
     -v              Show the version of ${project_name}
@@ -64,7 +64,7 @@ function _set_self_path() {
     self_path=$1
 }
 
-function _db_dump() {
+function _dump() {
 	mkdir -p ${dump_dir}
 
 	local db_name=$(__get_wp_config_value DB_NAME)
