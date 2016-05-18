@@ -1,8 +1,33 @@
 #!/bin/sh
 
+project_name=$0
 self_path=$(cd $(dirname $0);pwd)
 dump_dir=${self_path}/.db-dump
 dump_file_name="db-dump.sql"
+
+function __usage() {
+  cat <<-EOF
+Usage: 
+    ${project_name} <command>
+    ${project_name} [-e|-v|-h]
+
+option:
+    -v              Show the version of ${project_name}
+    -h              Show this message
+
+command:
+    dump            Dump mysql data
+
+EOF
+}
+
+function _version() { 
+    echo ${version} 
+}
+
+function _help() { 
+    __usage 
+}
 
 function __is_executable() {
     local command="$1"
@@ -50,33 +75,24 @@ function _db_dump() {
 		-u ${db_user} \
 		-p${db_password} ${db_name} > ${dump_dir}/${dump_file_name}
 
-    if [ $1 = "true" ]; then
+    if [ $# -ne 0 ] && [ $1 = "true" ]; then
         tar cvzf ${dump_dir}/${dump_file_name}.tar.gz -C ${dump_dir} ${dump_file_name} > /dev/null 2>&1
     fi
 }
-
-# -------------------------------------------
-# main
-# -------------------------------------------
-#db_dump || {
-#	echo  "error"
-#	exit 1
-#}
-#echo "done"
 
 # ----------------------------------------
 # Main Routine
 # ----------------------------------------
 
-## check option(s)
-#while getopts hv OPT
-#do
-#  case $OPT in
-#    "h" ) __help;exit 0 ;;
-#    "v" ) __version;exit 0 ;;
-#  esac
-#done
-#shift $(expr $OPTIND - 1)
+# check option(s)
+while getopts hv OPT
+do
+  case $OPT in
+    "h" ) __helpe;exit 0 ;;
+    "v" ) __version;exit 0 ;;
+  esac
+done
+shift $(expr $OPTIND - 1)
 
 # check argument(s)
 if [ $# -eq 0 ]; then
