@@ -4,7 +4,7 @@ version="0.1"
 project_name=$0
 
 self_path=$(cd $(dirname $0);pwd)
-dump_dir=${self_path}/sql
+dump_dir=${self_path}/data
 dump_file_name="dump.sql"
 
 function __usage() {
@@ -76,7 +76,7 @@ function __mysqldump() {
 		-p${db_password} ${db_name} > ${dump_dir}/${dump_file_name}
 
     if [ $# -ne 0 ] && [ $1 = "true" ]; then
-        tar cvzf ${dump_dir}/${dump_file_name}.tar.gz -C ${dump_dir} ${dump_file_name} > /dev/null 2>&1
+        tar cvzf ${dump_dir}/${dump_file_name}.tar.gz -C ${dump_dir} ${dump_file_name} --remove-files > /dev/null 2>&1
     fi
 }
 

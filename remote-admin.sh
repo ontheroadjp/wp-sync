@@ -41,27 +41,20 @@ function __help() {
 }
 
 # ----------------------------------------
+# Global variable
+# ----------------------------------------
+
+agent_path=""
+remote_data_dir=""
+local_data_dir=""
+
+# ----------------------------------------
 # Command
 # ----------------------------------------
 
-#function _mysqlstore(){
-#    . ./admin-agent.sh
-#    set_wp_path ../../
-#	local db_name=$(get_wp_config_value DB_NAME)
-#	local db_user=$(get_wp_config_value DB_USER)
-#	local db_password=$(get_wp_config_value DB_PASSWORD)
-#	local db_host=$(get_wp_config_value DB_HOST)
-#	echo ${db_name}
-#	echo ${db_user}
-#	echo ${db_password}
-#	echo ${db_host}
-#}
+function __init() {
 
-function _dump() {
-    __mysqldump $@
-}
-
-function __mysqldump() {
+    # Load .env file
     if [ -f $(cd $(dirname $0);pwd)/.env ]; then
         . $(cd $(dirname $0);pwd)/.env
     else
@@ -69,15 +62,12 @@ function __mysqldump() {
         exit 1
     fi
 
-    if [ ! -z $1 ]; then
-        download_dump_file=$1
-    else
-        download_dump_file=$(cd $(dirname $0);pwd)/sql/dump.sql.tar.gz
-    fi
-
+    # initialize
     agent_path=${wp_root}/wp-sync
-    dump_file=${agent_path}/sql/dump.sql
-    
+    remote_data_dir=${agent_path}/data
+    local_data_dir=$(cd $(dirname $0);pwd)
+    mkdir -p ${local_data_dir}
+
     # UPLOAD admin-agent.sh
     echo ">>> upload admin-agent.sh..."
     if [ ! -z ${wp_host} ]; then
@@ -93,7 +83,53 @@ function __mysqldump() {
             exit 1
         }
     fi
+}
+
+function __download_data() {
+    echo ">>> download data..."
+
+    if [ ! -z ${wp_host} ]; then
+        scp -r ${wp_host}:${remote_data_dir} ${local_data_dir} || {
+            echo "error."
+            exit 1
+        }
+    else
+        scp -r -P ${ssh_port} ${ssh_user}@${ssh_host}:${remote_data_dir} ${local_data_dir} || {
+            echo "error."
+            exit 1
+        }
+    fi
     
+}
+
+function __clean_up() {
+    echo ">>> clean up..."
+    if [ ! -z ${wp_host} ]; then
+        ssh x <<EOF > /dev/null 2>&1
+rm -rf ${agent_path}/admin-agent.sh
+rm -rf ${remote_data_dir}
+exit
+EOF
+    else
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
+rm -rf ${agent_path}/admin-agent.sh
+rm -rf ${remote_data_dir}
+exit
+EOF
+    fi
+}
+
+# ----------------------------------------
+# Command
+# ----------------------------------------
+
+function _dump() {
+    _mysqldump
+    _wordpressdump
+}
+
+function _mysqldump() {
+
     # DUMP MYSQL DATA
     if [ ! -z ${wp_host} ]; then
         ssh ${wp_host} sh ${agent_path}/admin-agent.sh dump true || {
@@ -106,44 +142,12 @@ function __mysqldump() {
             exit 1
         }
     fi
-
-    # DOWNLOAD DUMP DATA
-    echo ">>> download dump data..."
-    mkdir -p $(cd $(dirname $0);pwd)/sql
-
-    if [ ! -z ${wp_host} ]; then
-        scp ${wp_host}:${dump_file}.tar.gz ${download_dump_file} || {
-            echo "error."
-            exit 1
-        }
-    else
-        scp -P ${ssh_port} ${ssh_user}@${ssh_host}:${dump_file}.tar.gz ${download_dump_file} || {
-            echo "error."
-            exit 1
-        }
-    fi
-    
-    # CLEAN UP
-    echo ">>> clean up..."
-    if [ ! -z ${wp_host} ]; then
-        #ssh -t -t x <<EOF
-        ssh x <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/admin-agent.sh
-rm -rf ${dump_file}.tar.gz
-rm -rf ${dump_file}
-exit
-EOF
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/admin-agent.sh
-rm -rf ${dump_file}.tar.gz
-rm -rf ${dump_file}
-exit
-EOF
-    fi
-    
-    echo "complete!"
 }
+
+function wordpressdump() {
+    :
+}
+
 
 # ----------------------------------------
 # Main Routine
@@ -160,7 +164,7 @@ done
 shift $(expr $OPTIND - 1)
 
 # check argument(s)
-if [ $# -eq 0 ]; then
+if [ $# -ne 1 ]; then
     echo "error: invalid argument(s)"
     echo "See '${project_name} -h'." 
     exit 1
@@ -169,7 +173,12 @@ fi
 # execute command
 if __is_executable _$1; then
     cmd=$1; shift
-    _${cmd} $@
+
+    __init
+    _${cmd}
+    __download_data
+    __clean_up
+    echo "complete!"
 else
     echo "error: not executable."
     echo "See '${project_name} -h'." 
@@ -177,4 +186,3 @@ else
 fi
 
 exit 0
-
