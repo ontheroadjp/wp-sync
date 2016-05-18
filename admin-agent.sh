@@ -62,7 +62,7 @@ function _set_self_path() {
     self_path=$1
 }
 
-function _dump() {
+function __mysqldump() {
 	mkdir -p ${dump_dir}
 
 	local db_name=$(__get_wp_config_value DB_NAME)
@@ -78,6 +78,10 @@ function _dump() {
     if [ $# -ne 0 ] && [ $1 = "true" ]; then
         tar cvzf ${dump_dir}/${dump_file_name}.tar.gz -C ${dump_dir} ${dump_file_name} > /dev/null 2>&1
     fi
+}
+
+function _dump() {
+    __mysqldump $@
 }
 
 # ----------------------------------------

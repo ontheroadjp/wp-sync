@@ -45,7 +45,7 @@ function __help() {
 # ----------------------------------------
 
 #function _mysqlstore(){
-#    . ./mysql-admin-agent.sh
+#    . ./admin-agent.sh
 #    set_wp_path ../../
 #	local db_name=$(get_wp_config_value DB_NAME)
 #	local db_user=$(get_wp_config_value DB_USER)
@@ -58,6 +58,10 @@ function __help() {
 #}
 
 function _dump() {
+    __mysqldump $@
+}
+
+function __mysqldump() {
     if [ -f $(cd $(dirname $0);pwd)/.env ]; then
         . $(cd $(dirname $0);pwd)/.env
     else
@@ -74,17 +78,17 @@ function _dump() {
     agent_path=${wp_root}/wp-sync
     dump_file=${agent_path}/sql/dump.sql
     
-    # UPLOAD mysql-admin-agent.sh
-    echo ">>> upload mysql-admin-agent.sh..."
+    # UPLOAD admin-agent.sh
+    echo ">>> upload admin-agent.sh..."
     if [ ! -z ${wp_host} ]; then
         ssh ${wp_host} mkdir -p ${agent_path}
-        scp $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${wp_host}:${agent_path}/mysql-admin-agent.sh || {
+        scp $(cd $(dirname $0);pwd)/admin-agent.sh ${wp_host}:${agent_path}/admin-agent.sh || {
             echo "error."
             exit 1
         }
     else
         ssh -p ${ssh_port} ${ssh_user}@${ssh_host} mkdir -p ${agent_path}
-        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/mysql-admin-agent.sh ${ssh_user}@${ssh_host}:${agent_path}/mysql-admin-agent.sh || {
+        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/admin-agent.sh ${ssh_user}@${ssh_host}:${agent_path}/admin-agent.sh || {
             echo "error."
             exit 1
         }
@@ -92,12 +96,12 @@ function _dump() {
     
     # DUMP MYSQL DATA
     if [ ! -z ${wp_host} ]; then
-        ssh ${wp_host} sh ${agent_path}/mysql-admin-agent.sh dump true || {
+        ssh ${wp_host} sh ${agent_path}/admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
     else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/mysql-admin-agent.sh dump true || {
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh dump true || {
             echo "error."
             exit 1
         }
@@ -124,14 +128,14 @@ function _dump() {
     if [ ! -z ${wp_host} ]; then
         #ssh -t -t x <<EOF
         ssh x <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/mysql-admin-agent.sh
+rm -rf ${agent_path}/admin-agent.sh
 rm -rf ${dump_file}.tar.gz
 rm -rf ${dump_file}
 exit
 EOF
     else
         ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/mysql-admin-agent.sh
+rm -rf ${agent_path}/admin-agent.sh
 rm -rf ${dump_file}.tar.gz
 rm -rf ${dump_file}
 exit
