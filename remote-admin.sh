@@ -62,7 +62,7 @@ function __init() {
         exit 1
     fi
 
-    # initialize
+    # Initialize
     agent_path=${wp_root}/wp-sync
     remote_data_dir=${agent_path}/data
     local_data_dir=$(cd $(dirname $0);pwd)
@@ -102,22 +102,22 @@ function __download_data() {
     
 }
 
-function __clean_up() {
-    echo ">>> clean up..."
-    if [ ! -z ${wp_host} ]; then
-        ssh x <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/admin-agent.sh
-rm -rf ${remote_data_dir}
-exit
-EOF
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}/admin-agent.sh
-rm -rf ${remote_data_dir}
-exit
-EOF
-    fi
-}
+#function __clean_up() {
+#    echo ">>> clean up..."
+#    if [ ! -z ${wp_host} ]; then
+#        ssh x <<EOF > /dev/null 2>&1
+#rm -rf ${agent_path}/admin-agent.sh
+#rm -rf ${remote_data_dir}
+#exit
+#EOF
+#    else
+#        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
+#rm -rf ${agent_path}/admin-agent.sh
+#rm -rf ${remote_data_dir}
+#exit
+#EOF
+#    fi
+#}
 
 # ----------------------------------------
 # Command
@@ -189,9 +189,9 @@ if __is_executable _$1; then
     __init && {
         _${cmd} && {
             __download_data && {
-                __clean_up && {
+                #__clean_up && {
                     echo "complete!"
-                }
+                #}
             }
         }
     }
