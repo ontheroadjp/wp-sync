@@ -132,20 +132,32 @@ function _mysqldump() {
 
     # DUMP MYSQL DATA
     if [ ! -z ${wp_host} ]; then
-        ssh ${wp_host} sh ${agent_path}/admin-agent.sh dump true || {
+        ssh ${wp_host} sh ${agent_path}/admin-agent.sh mysqldump true || {
             echo "error."
             exit 1
         }
     else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh dump true || {
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh mysqldump true || {
             echo "error."
             exit 1
         }
     fi
 }
 
-function wordpressdump() {
-    :
+function _wordpressdump() {
+
+    # DUMP MYSQL DATA
+    if [ ! -z ${wp_host} ]; then
+        ssh ${wp_host} sh ${agent_path}/admin-agent.sh wordpressdump || {
+            echo "error."
+            exit 1
+        }
+    else
+        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh wordpressdump || {
+            echo "error."
+            exit 1
+        }
+    fi
 }
 
 

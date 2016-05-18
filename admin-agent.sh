@@ -58,11 +58,11 @@ function __get_wp_config_value() {
 	echo ${value}
 }
 
-function _set_self_path() {
-    self_path=$1
-}
+# ----------------------------------------
+# Command
+# ----------------------------------------
 
-function __mysqldump() {
+function _mysqldump() {
 	mkdir -p ${dump_dir}
 
 	local db_name=$(__get_wp_config_value DB_NAME)
@@ -80,8 +80,13 @@ function __mysqldump() {
     fi
 }
 
+function _wordpressdump() {
+    tar cvzf ${dump_dir}/wp.tar.gz ${self_path}/../ --exclude wp-sync/
+}
+
 function _dump() {
-    __mysqldump $@
+    _mysqldump $@
+    _wordpressdump $@
 }
 
 # ----------------------------------------
