@@ -5,7 +5,6 @@ project_name=$0
 
 self_path=$(cd $(dirname $0);pwd)
 dump_dir=${self_path}/data
-dump_file_name="dump.sql"
 
 function __usage() {
   cat <<-EOF
@@ -18,7 +17,9 @@ option:
     -h              Show this message
 
 command:
-    dump            Dump mysql data
+    dump            Dump all data
+    mysqldump       Dump only mysql data
+    wordpressdump   Dump only wordpress data
 
 EOF
 }
@@ -73,11 +74,10 @@ function _mysqldump() {
 	mysqldump --single-transaction \
 		-h ${db_host} \
 		-u ${db_user} \
-		-p${db_password} ${db_name} > ${dump_dir}/${dump_file_name}
+		-p${db_password} ${db_name} > ${dump_dir}/${db_name}.sql
 
     if [ $# -ne 0 ] && [ $1 = "true" ]; then
-        #tar cvzf ${dump_dir}/${dump_file_name}.tar.gz -C ${dump_dir} ${dump_file_name} --remove-files > /dev/null 2>&1
-        gzip -r -f ${dump_dir}/${dump_file_name}
+        gzip -r -f ${dump_dir}/${db_name}.sql
     fi
 }
 
