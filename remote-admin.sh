@@ -65,7 +65,7 @@ function __init() {
     # Initialize
     agent_path=${wp_root}/wp-sync
     remote_data_dir=${agent_path}/data
-    local_data_dir=$(cd $(dirname $0);pwd)
+    local_data_dir=$(cd $(dirname $0);pwd)/data
     mkdir -p ${local_data_dir}
 
     # UPLOAD admin-agent.sh
