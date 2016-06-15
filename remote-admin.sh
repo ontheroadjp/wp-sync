@@ -6,7 +6,7 @@
 
 project_name="wpsync"
 project_name=$0
-version="0.1"
+version="1.0.0"
 
 # ----------------------------------------
 # Private Functions

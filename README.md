@@ -48,11 +48,9 @@ wp_root="/home/nobita/example.jp/public_html/blog"
 ### 2. Exec command
 
 ```bash
-$ remote-admin.sh dump				# dump all data
-$ remote-admin.sh mysqldump			# dump only DB data
-$ remote-admin.sh wordpressdump 	# dump only WordPress files
+$ sh remote-admin.sh dump				# dump all data
+$ sh remote-admin.sh mysqldump			# dump only DB data
+$ sh remote-admin.sh wordpressdump 	# dump only WordPress files
 ```
 
 * After execute one of the remote-admin command, dump data you specify will be downloaded into ``wp-sync/data`` directory
-
-

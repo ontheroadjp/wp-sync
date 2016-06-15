@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="0.1"
+version="1.0"
 project_name=$0
 
 self_path=$(cd $(dirname $0);pwd)
