@@ -43,7 +43,7 @@ function __help() {
 }
 
 # ----------------------------------------
-# Global variable
+# Global variables
 # ----------------------------------------
 
 agent_path=""
@@ -51,7 +51,7 @@ remote_data_dir=""
 local_data_dir=""
 
 # ----------------------------------------
-# Command
+# Functions
 # ----------------------------------------
 
 function __init() {
@@ -72,54 +72,31 @@ function __init() {
 
     # UPLOAD admin-agent.sh
     echo ">>> upload admin-agent.sh..."
-    if [ ! -z ${wp_host} ]; then
-        ssh ${wp_host} mkdir -p ${agent_path}
-        scp $(cd $(dirname $0);pwd)/admin-agent.sh ${wp_host}:${agent_path}/admin-agent.sh || {
-            echo "error."
-            exit 1
-        }
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} mkdir -p ${agent_path}
-        scp -P ${ssh_port} $(cd $(dirname $0);pwd)/admin-agent.sh ${ssh_user}@${ssh_host}:${agent_path}/admin-agent.sh || {
-            echo "error."
-            exit 1
-        }
-    fi
+    ssh ${wp_host} mkdir -p ${agent_path}
+    scp $(cd $(dirname $0);pwd)/admin-agent.sh ${wp_host}:${agent_path}/admin-agent.sh || {
+        echo "error."
+        exit 1
+    }
 }
 
 function __download_data() {
     echo ">>> download data..."
 
-    if [ ! -z ${wp_host} ]; then
-        scp -r ${wp_host}:${remote_data_dir} ${local_data_dir} || {
-            echo "error."
-            exit 1
-        }
-    else
-        scp -r -P ${ssh_port} ${ssh_user}@${ssh_host}:${remote_data_dir} ${local_data_dir} || {
-            echo "error."
-            exit 1
-        }
-    fi
+    scp -r ${wp_host}:${remote_data_dir} ${local_data_dir} || {
+        echo "error."
+        exit 1
+    }
 }
 
 function __clean_up() {
     echo ">>> clean up..."
-    if [ ! -z ${wp_host} ]; then
         ssh x <<EOF > /dev/null 2>&1
 rm -rf ${agent_path}
-exit
 EOF
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} <<EOF > /dev/null 2>&1
-rm -rf ${agent_path}
-exit
-EOF
-    fi
 }
 
 # ----------------------------------------
-# Command
+# Commands
 # ----------------------------------------
 
 function _dump() {
@@ -128,37 +105,18 @@ function _dump() {
 }
 
 function _mysqldump() {
-
-    # DUMP MYSQL DATA
-    if [ ! -z ${wp_host} ]; then
-        ssh ${wp_host} sh ${agent_path}/admin-agent.sh mysqldump true || {
-            echo "error."
-            exit 1
-        }
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh mysqldump true || {
-            echo "error."
-            exit 1
-        }
-    fi
+    ssh ${wp_host} sh ${agent_path}/admin-agent.sh mysqldump true || {
+        echo "error."
+        exit 1
+    }
 }
 
 function _wordpressdump() {
-
-    # DUMP MYSQL DATA
-    if [ ! -z ${wp_host} ]; then
-        ssh ${wp_host} sh ${agent_path}/admin-agent.sh wordpressdump || {
-            echo "error."
-            exit 1
-        }
-    else
-        ssh -p ${ssh_port} ${ssh_user}@${ssh_host} sh ${agent_path}/admin-agent.sh wordpressdump || {
-            echo "error."
-            exit 1
-        }
-    fi
+    ssh ${wp_host} sh ${agent_path}/admin-agent.sh wordpressdump || {
+        echo "error."
+        exit 1
+    }
 }
-
 
 # ----------------------------------------
 # Main Routine

@@ -60,7 +60,7 @@ function __get_wp_config_value() {
 }
 
 # ----------------------------------------
-# Command
+# Commands
 # ----------------------------------------
 
 function _mysqldump() {
@@ -71,7 +71,7 @@ function _mysqldump() {
 	local db_password=$(__get_wp_config_value DB_PASSWORD)
 	local db_host=$(__get_wp_config_value DB_HOST)
 
-    db_engine="innodb"
+    local db_engine="innodb"
 
     if [ ${db_engine} = "innodb" ]; then
 	    mysqldump --quote-names \
