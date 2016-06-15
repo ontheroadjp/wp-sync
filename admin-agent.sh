@@ -71,17 +71,29 @@ function _mysqldump() {
 	local db_password=$(__get_wp_config_value DB_PASSWORD)
 	local db_host=$(__get_wp_config_value DB_HOST)
 
-	mysqldump --single-transaction \
-		-h ${db_host} \
-		-u ${db_user} \
-		-p${db_password} ${db_name} > ${dump_dir}/${db_name}.sql
+    db_engine="innodb"
 
-    if [ $# -ne 0 ] && [ $1 = "true" ]; then
+    if [ ${db_engine} = "innodb" ]; then
+	    mysqldump --quote-names \
+            --skip-lock-tables \
+            --single-transaction \
+	    	-h ${db_host} \
+	    	-u ${db_user} \
+	    	-p${db_password} ${db_name} > ${dump_dir}/${db_name}.sql
+    elif [ ${db_engine} = "myisam" ]; then
+        mysqldump --quote-names \
+	    	-h ${db_host} \
+	    	-u ${db_user} \
+	    	-p${db_password} ${db_name} > ${dump_dir}/${db_name}.sql
+    fi
+
+    if [ $# -ne 0 ] && [ $1 = "true" ] && [ -f ${dump_dir}/${db_name}.sql ]; then
         gzip -r -f ${dump_dir}/${db_name}.sql
     fi
 }
 
 function _wordpressdump() {
+	mkdir -p ${dump_dir}
     tar cvzf ${dump_dir}/wp.tar.gz ${self_path}/../ --exclude wp-sync/
 }
 
@@ -108,6 +120,12 @@ shift $(expr $OPTIND - 1)
 if [ $# -eq 0 ]; then
     echo "error: invalid argument(s)"
     echo "See '${project_name} -h'." 
+    exit 1
+fi
+
+# check wp-config.php
+if [ ! -f ${self_path}/../wp-config.php ]; then
+    echo "error: wp-config.php doesn't exist."
     exit 1
 fi
 
